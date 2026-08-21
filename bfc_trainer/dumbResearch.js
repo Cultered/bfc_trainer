@@ -157,20 +157,44 @@ function priorityResearch(research) {
     return "R-Wpn-LasSat" //placeholder lassat
 }
 
-function monoResearch(lab) {
-    runEvents()
-    if (structureIdle(lab)) {
-        var research = enumResearch()
-        if (research.length == 0) return
+//TODO get better id
+const labs = {
+    // lab x position will be used as id because there is no way bot builds 2 labs on one x i hope 
+    // track current ressearch and change it without finishing fi there is a higher priority one avialable
+}
 
-        pursueResearch(lab, max(research, i => priorityResearch(i.id)).id)
+function monoResearch(lab) {
+    const labId = lab.x
+    if (!labs[labId]) {
+        labs[labId] = {
+            currentResearch: null,
+        }
     }
-    return
+    var research = enumResearch()
+
+    // //if no better res continue
+    // if (priorityResearch(labs[labId].currentResearch) > priorityResearch(max(research, i => priorityResearch(i.id)).id)) {
+    //     return
+    // }else{
+    //     chat(ALL_PLAYERS,"i wanna change res at "+JSON.stringify(labs[labId]))
+    // }
+
+
+    if (research.length == 0) {pursueResearch(lab, "R-Wpn-LasSat"); return}//placeholder lassat
+    
+    pursueResearch(lab, max(research, i => priorityResearch(i.id)).id)
+    labs[labId].currentResearch = max(research, i => priorityResearch(i.id)).id
 }
 
 
 
 function dumbResearch() {
+    runEvents()//update priorities
     var lab = enumStruct(me, RESEARCH_LAB)
     lab.forEach(monoResearch)
+}
+
+//clean up lab
+function eventResearched(research, structure, player) {
+    labs[structure.x].currentResearch = null    
 }
